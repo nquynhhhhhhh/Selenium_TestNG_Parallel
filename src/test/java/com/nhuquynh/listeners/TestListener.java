@@ -1,6 +1,7 @@
 package com.nhuquynh.listeners;
 import com.nhuquynh.helpers.CaptureHelper;
 import com.nhuquynh.helpers.PropertiesHelper;
+import com.nhuquynh.reports.AllureManager;
 import com.nhuquynh.utils.LogUtils;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
@@ -66,6 +67,10 @@ public class TestListener implements ITestListener {
     public void onTestFailure(ITestResult result) {
         LogUtils.error("❌Test case " + result.getName() + " is failed.");
         LogUtils.error(result.getThrowable());
+
+        //Allure Report
+        //AllureManager.saveTextLog("❌Test case " + result.getName() + " is failed."); => nó tự đính kèm lỗi, kh cần cái này
+        AllureManager.saveScreenshotPNG();
 
         test_failed_total++;
         CaptureHelper.captureScreenshot(result.getName());
