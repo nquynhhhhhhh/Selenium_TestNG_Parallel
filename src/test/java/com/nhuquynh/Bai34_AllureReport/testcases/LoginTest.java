@@ -4,7 +4,9 @@ import com.nhuquynh.Bai34_AllureReport.pages.LoginPage;
 import com.nhuquynh.Common.BaseTest;
 import com.nhuquynh.dataproviders.DataProviderFactory;
 import com.nhuquynh.helpers.CaptureHelper;
+import com.nhuquynh.keywords.WebUI;
 import io.qameta.allure.*;
+import lombok.extern.log4j.Log4j;
 import org.testng.annotations.Test;
 
 import java.awt.*;
@@ -14,17 +16,25 @@ public class LoginTest extends BaseTest {
 
     LoginPage loginPage;
 
-    @Feature("Regression")
+    @Epic("Regression")
+    @Feature("DMS")
+    @Story("Login")
     @Owner("Nhu Quynh")
     @Severity(SeverityLevel.NORMAL)
+    @Link("https://anhtester.com/dms/873")
+    @Issue("https://jira.com/anhtester/dms/issue")
+    @Description("This test attempts to log into the website using a login and a password. Fails if any error happens.\n\nNote that this test does not test 2-Factor Authentication.")
     @Test(priority = 1, dataProvider = "data_provider_login_success", dataProviderClass = DataProviderFactory.class)
     public void loginSuccess(String email, String password) throws AWTException {
         loginPage = new LoginPage(); //khởi tạo browser ở BaseTest trước rồi nên driver đã có giá trị => chỗ này cũng sẽ mang giá trị
         loginPage.loginCRM(email,password);
+        WebUI.sleep(1);
         loginPage.verifyLoginSuccess();
     }
 
-    @Feature("Regression")
+    @Epic("Regression")
+    @Feature("DMS")
+    @Story("Login")
     @Owner("Nhu Quynh")
     @Severity(SeverityLevel.CRITICAL)
     @Test(priority = 1, dataProvider = "data_provider_login_excel", dataProviderClass = DataProviderFactory.class)
@@ -45,7 +55,9 @@ public class LoginTest extends BaseTest {
         loginPage.verifyLoginSuccess();
     }
 
-    @Feature("Smoke")
+    @Epic("Regression")
+    @Feature("Inventory")
+    @Story("Login")
     @Owner("Dung")
     @Severity(SeverityLevel.NORMAL)
     @Test(priority = 2)

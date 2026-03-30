@@ -2,7 +2,9 @@ package com.nhuquynh.keywords;
 
 import com.nhuquynh.drivers.DriverManager;
 import com.nhuquynh.helpers.PropertiesHelper;
+import com.nhuquynh.reports.AllureManager;
 import com.nhuquynh.utils.LogUtils;
+import io.qameta.allure.Step;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -181,12 +183,14 @@ public class WebUI {
         }
     }
 
+    @Step("Open URL: {0}")
     public static void openURL(String url) {
         DriverManager.getDriver().get(url);
         sleep(STEP_TIME);
         LogUtils.info("\uD83C\uDF0E " +"Open URL:  " + url);
     }
 
+    @Step("Click on element: {0}")
     public static void clickElement(By by) {
         waitForElementClickable(by);
         sleep(STEP_TIME);
@@ -194,6 +198,7 @@ public class WebUI {
         LogUtils.info("Click on element " + by);
     }
 
+    @Step("Click on element: {0} with timout {1}") //0 là by, 1 là timeout
     public static void clickElement(By by, int timeout) {
         waitForElementClickable(by, timeout);
         sleep(STEP_TIME);
@@ -201,6 +206,7 @@ public class WebUI {
         LogUtils.info("Click on element " + by);
     }
 
+    @Step("Clean text on element: {0}")
     public static void clearText(By by) {
         sleep(STEP_TIME);
         waitForElementVisible(by);
@@ -208,18 +214,20 @@ public class WebUI {
         LogUtils.info("Clear text on element: " + by);
     }
 
+    @Step("Set text: {1} on element {0}") //0 là by, 1 là value
     public static void setText(By by, String value) {
         waitForElementVisible(by);
         sleep(STEP_TIME);
         getWebElement(by).sendKeys(value);
         LogUtils.info("Set text " + value + " on element " + by);
     }
-
+    @Step("Get text on element: {0}")
     public static String getElementText(By by) {
         waitForElementVisible(by);
         LogUtils.info("Get text of element " + by);
         String text = getWebElement(by).getText();
         LogUtils.info("==> TEXT: " + text);
+        AllureManager.saveTextLog("==> TEXT: " + text);
         return text; //Trả về một giá trị kiểu String
     }
 
@@ -409,6 +417,7 @@ public class WebUI {
         boolean check = actual.equals(expected);
         return check;
     }
+
 
     public static void assertEquals(Object actual, Object expected, String message) {
         waitForPageLoaded();
