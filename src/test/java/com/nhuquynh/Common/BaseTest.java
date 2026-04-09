@@ -1,5 +1,6 @@
 package com.nhuquynh.Common;
 
+import com.nhuquynh.Bai26_ParallelExecutionPOM.pages.BasePage;
 import com.nhuquynh.drivers.DriverManager;
 import com.nhuquynh.helpers.CaptureHelper;
 import com.nhuquynh.helpers.PropertiesHelper;
