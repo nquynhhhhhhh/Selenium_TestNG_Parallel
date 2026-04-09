@@ -1,10 +1,14 @@
 package com.nhuquynh.keywords;
 
+import com.aventstack.extentreports.Status;
 import com.nhuquynh.drivers.DriverManager;
 import com.nhuquynh.helpers.PropertiesHelper;
+import com.nhuquynh.helpers.SystemHelper;
 import com.nhuquynh.reports.AllureManager;
+import com.nhuquynh.reports.ExtentTestManager;
 import com.nhuquynh.utils.LogUtils;
 import io.qameta.allure.Step;
+import lombok.extern.log4j.Log4j;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -13,6 +17,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.time.Duration;
 import java.util.List;
@@ -24,8 +29,53 @@ public class WebUI {
     private static double STEP_TIME = 0.5;
     private static int PAGE_LOAD_TIMEOUT = 20;
 
-    //Wait for Element
+    @Step("Check data: {1} in Table by column {2}")
+    public static void checkDataInTableByColumn_Contains(int column, String value, String columnName) {
 
+        LogUtils.info("\uD83D\uDFE2 Check data " + value + " in Table by column " + columnName);
+        ExtentTestManager.logMessage(Status.INFO, "\uD83D\uDFE2 Check data " + value + " in Table by column " + columnName);
+
+        //Xác định số dòng của table sau khi search
+        List<WebElement> row = DriverManager.getDriver().findElements(By.xpath("//table[@id='clients']//tbody/tr"));
+        int rowTotal = row.size(); //Lấy ra số dòng
+        LogUtils.info("Số dòng tìm thấy: " + rowTotal);
+
+        //Duyệt từng dòng
+        for (int i = 1; i <= rowTotal; i++) {
+            WebElement elementCheck = DriverManager.getDriver().findElement(By.xpath("//table//tbody/tr[" + i + "]/td[" + column + "]"));
+            WebUI.sleep(1);
+            JavascriptExecutor js = (JavascriptExecutor) DriverManager.getDriver();
+            js.executeScript("arguments[0].scrollIntoView(true);", elementCheck);
+            WebUI.sleep(1);
+            LogUtils.info(value + " - " + elementCheck.getText());
+            Assert.assertTrue(SystemHelper.removeSpecialCharacters(elementCheck.getText()).toUpperCase().contains(SystemHelper.removeSpecialCharacters(value).toUpperCase()), "Dòng số " + i + " không chứa giá trị tìm kiếm.");        }
+
+    }
+
+    @Step("Check data: {1} in Table by column {2}")
+    public static void checkDataInTableByColumn_Equals(int column, String value, String columnName) {
+
+        LogUtils.info("\uD83D\uDFE2 Check data " + value + " in Table by column " + columnName);
+        ExtentTestManager.logMessage(Status.INFO, "\uD83D\uDFE2 Check data " + value + " in Table by column " + columnName);
+
+        //Xác định số dòng của table sau khi search
+        List<WebElement> row = DriverManager.getDriver().findElements(By.xpath("//table[@id='clients']//tbody/tr"));
+        int rowTotal = row.size(); //Lấy ra số dòng
+        LogUtils.info("Số dòng tìm thấy: " + rowTotal);
+
+        //Duyệt từng dòng
+        for (int i = 1; i <= rowTotal; i++) {
+            WebElement elementCheck = DriverManager.getDriver().findElement(By.xpath("//table//tbody/tr[" + i + "]/td[" + column + "]"));
+
+            JavascriptExecutor js = (JavascriptExecutor) DriverManager.getDriver();
+            js.executeScript("arguments[0].scrollIntoView(true);", elementCheck);
+
+            LogUtils.info(value + " - " + elementCheck.getText());
+            Assert.assertTrue(elementCheck.getText().toUpperCase().equals(value.toUpperCase()), "Dòng số " + i + " không chứa giá trị tìm kiếm.");
+        }
+    }
+
+    //Wait for Element
     public static void waitForElementVisible(By by) {
         try {
             WebDriverWait wait = new WebDriverWait(DriverManager.getDriver(), Duration.ofSeconds(TIMEOUT), Duration.ofMillis(500));
@@ -104,7 +154,7 @@ public class WebUI {
 
         //Wait Javascript until it is Ready!
         if (!jsReady) {
-            //System.out.println("Javascript is NOT Ready.");
+            //LogUtils.info("Javascript is NOT Ready.");
             //Wait for Javascript to load
             try {
                 wait.until(jsLoad);
@@ -124,7 +174,43 @@ public class WebUI {
     }
 
     public static void logConsole(Object message) {
-        System.out.println(message);
+        LogUtils.info(message);
+    }
+
+    public static void uploadFileWithRobotClass(By elementFileForm, String filepath){
+        //Click để mở form upload
+        WebUI.clickElement(elementFileForm);
+        WebUI.sleep(2);
+
+        // Khởi tạo Robot class
+        Robot rb = null;
+        try {
+            rb = new Robot();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+
+        // Copy File path vào Clipboard
+        StringSelection str = new StringSelection(filepath);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(str, null);
+
+        WebUI.sleep(2);
+
+        // Nhấn Control+V để dán
+        rb.keyPress(KeyEvent.VK_CONTROL);
+        rb.keyPress(KeyEvent.VK_V);
+
+        // Xác nhận Control V trên
+        rb.keyRelease(KeyEvent.VK_CONTROL);
+        rb.keyRelease(KeyEvent.VK_V);
+
+        WebUI.sleep(2);
+
+        // Nhấn Enter
+        rb.keyPress(KeyEvent.VK_ENTER);
+        rb.keyRelease(KeyEvent.VK_ENTER);
+
+        WebUI.sleep(2);
     }
 
     public static WebElement getWebElement(By by) {
@@ -139,12 +225,13 @@ public class WebUI {
         List<WebElement> listElement = getWebElements(by);
 
         if (listElement.size() > 0) {
-            System.out.println("checkElementExist: " + true + " --- " + by);
+            LogUtils.info("✅Check Element Exist: " + true + " --- " + by);
             return true;
         } else {
-            System.out.println("checkElementExist: " + false + " --- " + by);
+            LogUtils.info("❌Check Element Exist:: " + false + " --- " + by);
             return false;
         }
+
     }
 
     // Hàm kiểm tra sự tồn tại của phần tử với lặp lại nhiều lần
@@ -155,11 +242,11 @@ public class WebUI {
             try {
                 WebElement element = getWebElement(by);
                 if (element != null) {
-                    System.out.println("Tìm thấy phần tử ở lần thử thứ " + (retryCount + 1));
+                    LogUtils.info("Tìm thấy phần tử ở lần thử thứ " + (retryCount + 1));
                     return true; // Phần tử được tìm thấy
                 }
             } catch (NoSuchElementException e) {
-                System.out.println("Không tìm thấy phần tử. Thử lại lần " + (retryCount + 1));
+                LogUtils.info("Không tìm thấy phần tử. Thử lại lần " + (retryCount + 1));
                 retryCount++;
                 try {
                     Thread.sleep(waitTimeMillis); // Chờ trước khi thử lại
@@ -188,6 +275,7 @@ public class WebUI {
         DriverManager.getDriver().get(url);
         sleep(STEP_TIME);
         LogUtils.info("\uD83C\uDF0E " +"Open URL:  " + url);
+        ExtentTestManager.logMessage(Status.PASS, "Open URL: " + url);
     }
 
     @Step("Click on element: {0}")
@@ -195,7 +283,8 @@ public class WebUI {
         waitForElementClickable(by);
         sleep(STEP_TIME);
         getWebElement(by).click();
-        LogUtils.info("Click on element " + by);
+        LogUtils.info("\uD83D\uDCCDClick on element " + by);
+        ExtentTestManager.logMessage(Status.PASS, "Click on element " + by);
     }
 
     @Step("Click on element: {0} with timout {1}") //0 là by, 1 là timeout
@@ -203,7 +292,7 @@ public class WebUI {
         waitForElementClickable(by, timeout);
         sleep(STEP_TIME);
         getWebElement(by).click();
-        LogUtils.info("Click on element " + by);
+        LogUtils.info("\uD83D\uDCCDClick on element " + by);
     }
 
     @Step("Clean text on element: {0}")
@@ -212,6 +301,8 @@ public class WebUI {
         waitForElementVisible(by);
         getWebElement(by).clear();
         LogUtils.info("Clear text on element: " + by);
+        ExtentTestManager.logMessage(Status.PASS, "Clear text on element " + by);
+
     }
 
     @Step("Set text: {1} on element {0}") //0 là by, 1 là value
@@ -219,38 +310,47 @@ public class WebUI {
         waitForElementVisible(by);
         sleep(STEP_TIME);
         getWebElement(by).sendKeys(value);
-        LogUtils.info("Set text " + value + " on element " + by);
+        LogUtils.info("\uD83D\uDD8B\uFE0FSet text " + value + " on element " + by);
+        ExtentTestManager.logMessage(Status.PASS, "Set text " + value + " on element " + by);
     }
-    @Step("Get text on element: {0}")
+    @Step("\uD83D\uDCACGet text on element: {0}")
     public static String getElementText(By by) {
         waitForElementVisible(by);
-        LogUtils.info("Get text of element " + by);
+        LogUtils.info("\uD83D\uDCE9Get text of element " + by);
         String text = getWebElement(by).getText();
         LogUtils.info("==> TEXT: " + text);
+
+        ExtentTestManager.logMessage(Status.PASS, "Get text on element " + by);
+        ExtentTestManager.logMessage(Status.INFO, "===>TEXT: " + text);
+
         AllureManager.saveTextLog("==> TEXT: " + text);
         return text; //Trả về một giá trị kiểu String
     }
 
     public static String getElementAttribute(By by, String attributeName) {
         waitForElementVisible(by);
-        System.out.println("Get attribute of element " + by);
+        LogUtils.info("Get attribute of element " + by);
         String value = getWebElement(by).getAttribute(attributeName);
-        System.out.println("==> Attribute value: " + value);
+        LogUtils.info("==> Attribute value: " + value);
+
+        ExtentTestManager.logMessage(Status.PASS, "Get attribute on element " + by);
+        ExtentTestManager.logMessage(Status.INFO, "===> Attribute value: " + attributeName);
+
         return value;
     }
 
     public static String getElementCssValue(By by, String cssPropertyName) {
         waitForElementVisible(by);
-        System.out.println("Get CSS value " + cssPropertyName + " of element " + by);
+        LogUtils.info("Get CSS value " + cssPropertyName + " of element " + by);
         String value = getWebElement(by).getCssValue(cssPropertyName);
-        System.out.println("==> CSS value: " + value);
+        LogUtils.info("==> CSS value: " + value);
         return value;
     }
 
     public static void setTextAndKey(By by, String value, Keys key) {
         waitForPageLoaded();
         getWebElement(by).sendKeys(value, key);
-        System.out.println("Set text: " + value + " on element " + by);
+        LogUtils.info("Set text: " + value + " on element " + by);
     }
 
     public static void scrollToElement(By by) {
@@ -413,7 +513,7 @@ public class WebUI {
 
     public static boolean verifyEquals(Object actual, Object expected) {
         waitForPageLoaded();
-        System.out.println("Verify equals: " + actual + " and " + expected);
+        LogUtils.info("Verify equals: " + actual + " and " + expected);
         boolean check = actual.equals(expected);
         return check;
     }
@@ -421,27 +521,31 @@ public class WebUI {
 
     public static void assertEquals(Object actual, Object expected, String message) {
         waitForPageLoaded();
-        System.out.println("Assert equals: " + actual + " \uD83D\uDFF0 " + expected);
+        LogUtils.info("Assert equals: " + actual + " \uD83D\uDFF0 " + expected);
+        ExtentTestManager.logMessage("Assert equals: " + actual + " \uD83D\uDFF0 " + expected);
         Assert.assertEquals(actual, expected, message);
     }
 
     public static boolean verifyContains(String actual, String expected) {
         waitForPageLoaded();
-        System.out.println("Verify contains: " + actual + " and " + expected);
+        LogUtils.info("Verify contains: " + actual + " and " + expected);
         boolean check = actual.contains(expected);
         return check;
     }
 
     public static void assertContains(String actual, String expected, String message) {
         waitForPageLoaded();
-        System.out.println("Assert contains: " + actual + " and " + expected);
+        LogUtils.info("Assert contains: " + actual + " and " + expected);
+        ExtentTestManager.logMessage(Status.INFO,"Assert contains: " + actual + " and " + expected);
         boolean check = actual.contains(expected);
         Assert.assertTrue(check, message);
     }
 
     public static void assertNotContains(String actual, String expected, String message) {
         waitForPageLoaded();
-        System.out.println("Assert NOT contains: " + actual + " ↔\uFE0F " + expected);
+        LogUtils.info("Assert NOT contains: " + actual + " ↔\uFE0F " + expected);
+        ExtentTestManager.logMessage(Status.INFO,"Assert NOT contains: " + actual + " ↔\uFE0F " + expected);
+
         boolean check = actual.contains(expected);
         Assert.assertFalse(check, message);
     }

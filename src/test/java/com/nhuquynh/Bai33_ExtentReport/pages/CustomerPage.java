@@ -1,15 +1,11 @@
-package com.nhuquynh.Bai34_AllureReport.pages;
+package com.nhuquynh.Bai33_ExtentReport.pages;
 
 import com.nhuquynh.drivers.DriverManager;
 import com.nhuquynh.keywords.WebUI;
-import com.nhuquynh.utils.LogUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
-
-import static com.nhuquynh.keywords.WebUI.setTextAndKey;
 
 public class CustomerPage extends BasePage {
 
@@ -112,26 +108,13 @@ public class CustomerPage extends BasePage {
 
     }
 
-    public void searchDataCustomer(String data){
-        WebUI.waitForPageLoaded();
-        WebUI.setText(inputSearchCustomer, data);
-    }
-
     public void searchAndCheckCustomerInTable(String customerName){
         clickMenuCustomer();
         WebUI.setText(inputSearchCustomer,customerName);
         WebUI.sleep(2);
         String customerNameInTable = WebUI.getElementText(itemCustomerFirst);
-        LogUtils.info(customerNameInTable);
+        System.out.println(customerNameInTable);
         WebUI.assertEquals(customerNameInTable,customerName,"The customer name in table not match");
-    }
-
-    public void searchAndCheckDataInTable(int column, String data, String columnName) {
-        WebUI.waitForPageLoaded();
-        setTextAndKey(inputSearchCustomer, data, Keys.ENTER);
-        WebUI.sleep(2);
-        WebUI.waitForPageLoaded();
-        WebUI.checkDataInTableByColumn_Contains(column, data, columnName);
     }
 
     public void clickFirstItemCustomer(){

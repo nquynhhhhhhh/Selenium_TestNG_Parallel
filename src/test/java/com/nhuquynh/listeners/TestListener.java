@@ -1,7 +1,10 @@
 package com.nhuquynh.listeners;
+import com.aventstack.extentreports.Status;
 import com.nhuquynh.helpers.CaptureHelper;
 import com.nhuquynh.helpers.PropertiesHelper;
 import com.nhuquynh.reports.AllureManager;
+import com.nhuquynh.reports.ExtentReportManager;
+import com.nhuquynh.reports.ExtentTestManager;
 import com.nhuquynh.utils.LogUtils;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
@@ -43,17 +46,19 @@ public class TestListener implements ITestListener {
         //CaptureHelper.stopRecord(1); //chỉ record được TC cuối
         //Gửi mail
         //Xuất report
-
+        //Kết thúc và thực thi Extents Report
+        ExtentReportManager.getExtentReports().flush();
     }
 
     @Override
     public void onTestStart(ITestResult result) {
         //ghi vào logs Files
         //ghi vào report chi tiết từng bước
-        LogUtils.info("Bắt đầu chạy test case: " + result.getName());
+        LogUtils.info("➡\uFE0FBắt đầu chạy test case: " + result.getName());
         test_total++;
         CaptureHelper.startRecord(result.getName());
-
+        //Bắt đầu ghi 1 TCs mới vào Extent Report
+        ExtentTestManager.saveToReport(getTestName(result), getTestDescription(result));
     }
 
     @Override
@@ -61,6 +66,8 @@ public class TestListener implements ITestListener {
         LogUtils.info("✅Test case " + result.getName() + " is passed.");
         test_passed_total++;
         CaptureHelper.stopRecord(1);
+        //Extent Report
+        ExtentTestManager.logMessage(Status.PASS, result.getName() + " is passed.");
     }
 
     @Override
@@ -71,6 +78,11 @@ public class TestListener implements ITestListener {
         //Allure Report
         //AllureManager.saveTextLog("❌Test case " + result.getName() + " is failed."); => nó tự đính kèm lỗi, kh cần cái này
         AllureManager.saveScreenshotPNG();
+
+        //Extent Report
+        ExtentTestManager.logMessage(Status.FAIL, result.getThrowable().toString()); //đính kèm chi tiết lỗi trước
+        ExtentTestManager.addScreenshot(result.getName()); //đính kèm hình ảnh sau
+        ExtentTestManager.logMessage(Status.FAIL, "❌Test case " + result.getName() + " is failed.");
 
         test_failed_total++;
         CaptureHelper.captureScreenshot(result.getName());
@@ -83,8 +95,12 @@ public class TestListener implements ITestListener {
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        LogUtils.warn("Test case " + result.getName() + " is skipped.");
+        LogUtils.warn("\uD83E\uDD98Test case " + result.getName() + " is skipped.");
         LogUtils.warn(result.getThrowable());
+
+        //Extent Report
+        ExtentTestManager.logMessage(Status.SKIP,"\uD83E\uDD98Test case " + result.getName() + " is skipped.");
+        ExtentTestManager.logMessage(Status.SKIP, result.getThrowable().toString());
 
         test_skipped_total++;
         CaptureHelper.stopRecord(1);

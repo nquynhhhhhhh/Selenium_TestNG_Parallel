@@ -2,10 +2,10 @@
 
 <suite name="Suite Login Test" verbose="1">
 
-    <test name="Login Test with Chrome" parallel="methods" thread-count="2">
+    <test name="Login Test with Chrome">
         <parameter name="browser" value="chrome"></parameter>
         <classes>
-            <class name="com.nhuquynh.Bai33_ExtentReport.testcases.LoginTest">
+            <class name="com.nhuquynh.handle_Table.HandleTable">
             </class>
         </classes>
     </test>
